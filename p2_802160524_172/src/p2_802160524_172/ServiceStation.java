@@ -44,12 +44,20 @@ public class ServiceStation {
 			//check for possible transfers (if applicable per currrent policy)
 			if (currentPolicy == policy.MLMSBLL) {
 				//check waitLines[i] lengths and balance, need to do it in a loop cause we have variable number of waitlines
+				
+				int shortestLine = 0;
+				for (int i = 1; i < serversQty; i++) { // identifies shortest line
+					if (waitLines[i].size() < waitLines[shortestLine].size()) {
+						shortestLine = i;
+					}
+				}
+				
 			}
 			if (currentPolicy == policy.MLMSBWT) {
 				//check waitLines[i] wait times and balance, need to do it in a loop cause we have variable number of waitlines
 			}
 			
-			//check for service starts (caused by completions above
+			//check for service starts (caused by completions above)
 			//get new waitline heads and add to servicePriorityQueue
 			
 			
@@ -58,13 +66,35 @@ public class ServiceStation {
 			//do peek in arrivalPriorityQueue to see if the next arrival time is now
 			//if so poll (remove customer from arrival pq) and assign to wait line
 			//loop (keep peeking into arrival queue and processing as needed until you see a future time)
+			while (arrivalPriorityQueue.peek().getArrivalTime() == currentTime) {
+				if (currentPolicy == policy.SLMS) {
+					
+				}
+				else if (currentPolicy == policy.MLMS) {
+					
+				}
+				else if (currentPolicy == policy.MLMSBLL) {
+					
+				}
+				else { // currentPolicy = policy.MLMSBWT
+					
+				}
+			}
 			
 			
 			//now update time to time of next event by peeking into service queue and arrival queue a choosing nearest future time
 			//currentTime = new next time
+			if (arrivalPriorityQueue.peek().getArrivalTime() < servicePriorityQueue.peek().getServiceTime()) {
+				currentTime = arrivalPriorityQueue.peek().getArrivalTime();
+			}else {
+				currentTime = servicePriorityQueue.peek().getServiceTime();
+			}
 			
 			//if arrival queue and service queue are empty we are done
 			//finished = true;
+			if (arrivalPriorityQueue.isEmpty() && servicePriorityQueue.isEmpty()) {
+				finished = true;
+			}
 
 			
 		}
