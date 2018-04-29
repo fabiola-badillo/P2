@@ -15,11 +15,14 @@ public class dataReader {
 	}
 
 	public SLLQueue<Customer> readData() throws FileNotFoundException{ // TODO add file "dataFiles.txt"
-	
+	    inputQueue= new SLLQueue<Customer>();
 		int id = 0;
-		//TODO:  read filenames from file "datafiles.txt" and then repeat logic inside the for loop below for each file
+		String parenFiles = "dataFiles.txt";
+		Scanner input = new Scanner(new File(parentDirectory, parenFiles));
+		while(input.hasNextLine()) {//TODO:  read filenames from file "datafiles.txt" and then repeat logic inside the for loop below for each file
+			String datap=input.nextLine();
 		for (int i=1; i<3; i++) { // first 3 only for testing only, change per comment above
-			String fileName = "data_" + i  + ".txt"; 
+			String fileName = datap;
 			Scanner inputFile = new Scanner(new File(parentDirectory, fileName)); 
 
 			while (inputFile.hasNext()) {
@@ -27,9 +30,12 @@ public class dataReader {
 				String[] dataArr = data.split(" ");
 				inputQueue.enqueue(new Customer(id, Integer.parseInt(dataArr[0]), Integer.parseInt(dataArr[1]), i));	//TODO: make first param globally unique, last param is file index
 				id++;
-			}
+				}
 			inputFile.close();
+			}
 		}
+		input.close();
 		return inputQueue; 
+		
 	}
-} 
+}
