@@ -33,6 +33,7 @@ public class ServiceStation {
 		Customer currentCompletedCustomer;
 		
 		while (!finished) {
+			
 			//check completion events
 			while (servicePriorityQueue.peek().getCompletionTime() == currentTime) {  //more completion events to process for current time
 				currentCompletedCustomer = servicePriorityQueue.poll();	//poll should remove from priority queue, verify
