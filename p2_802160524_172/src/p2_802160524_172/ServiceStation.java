@@ -8,10 +8,10 @@ public class ServiceStation {
 	private int serversQty;
 
 	private PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort();
-	private PriorityQueue<Customer> arrivalPriorityQueue = new PriorityQueue<Customer>(11,arrivalPriorityQueueSorter);
+	private PriorityQueue<Customer> arrivalPriorityQueue = new PriorityQueue<Customer> (11, arrivalPriorityQueueSorter);
 	
 	private PriorityQueueCompletionSort servicePriorityQueueSorter = new PriorityQueueCompletionSort();
-	private PriorityQueue<Customer> servicePriorityQueue = new PriorityQueue<Customer>(11,servicePriorityQueueSorter);
+	private PriorityQueue<Customer> servicePriorityQueue = new PriorityQueue<Customer>(11, servicePriorityQueueSorter);
 	
 	private SLLQueue<Customer>[] waitLines;
 	
@@ -35,7 +35,7 @@ public class ServiceStation {
 		while (!finished) {
 			//check completion events
 			while (servicePriorityQueue.peek().getCompletionTime() == currentTime) {  //more completion events to process for current time
-				currentCompletedCustomer = servicePriorityQueue.poll();	//poll should remove fro priority queue, verify
+				currentCompletedCustomer = servicePriorityQueue.poll();	//poll should remove from priority queue, verify
 				System.out.println(currentCompletedCustomer.getCid());  //TODO collect running statistics and write to raw results files
 				//TODO:  need to remove head of line waitLines[currentCompletedCustomer.getServerid()].
 			}
