@@ -119,19 +119,35 @@ public class ServiceStation {
 
 			//check for service starts (caused by completions above) (third priority events, done here third)
 			//get new waitline heads and add to servicePriorityQueue
-			for(int i = 0; i < serversQty; i++) { // TODO check index, i changed to zero, it was 1
-				if (ServiceCompleted[i]) {
-					if (this.currentPolicy == policy.SLMS) {
-						if (waitLines[0].size() > 1) {
+			if (this.currentPolicy == policy.SLMS) {			
+				if (ServiceCompleted[0]) {	//check line with server
+					if (waitLines[0].size() > 0) {	//the first server became available so don't need to send next customer to any other server
+						tmpStartingCustomer = waitLines[0].peekFirst();
+						tmpStartingCustomer.setServerid(0);
+						tmpStartingCustomer.setStartTime(currentTime);
+						tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+						servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time	
+					}
+					ServiceCompleted[0] = false;
+				}
+				for(int i = 1; i < serversQty; i++) {
+					if (ServiceCompleted[i]) {
+						if (waitLines[0].size() > 1) {	//customers waiting in our only line, bring next customer over to this server that just became available
 							tmpStartingCustomer = waitLines[0].get(1);
 							waitLines[0].remove(1);
-							tmpStartingCustomer.setServerid(0);
+							tmpStartingCustomer.setServerid(i);
 							tmpStartingCustomer.setStartTime(currentTime);
 							tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
 							servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time
 						}
+						ServiceCompleted[i] = false;
 					}
-					else {
+				}				
+			}
+			else {	
+				//get new waitline heads and add to servicePriorityQueue
+				for(int i = 0; i < serversQty; i++) { // TODO check index, i changed to zero, it was 1
+					if (ServiceCompleted[i]) {
 						if (waitLines[i].size() > 0) {
 							tmpStartingCustomer = waitLines[i].peekFirst();
 							tmpStartingCustomer.setServerid(i);
@@ -139,9 +155,9 @@ public class ServiceStation {
 							tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
 							servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time	
 						}
+						ServiceCompleted[i] = false;
 					}
-					ServiceCompleted[i] = false;
-				}
+				}			
 			}
 
 			//now check for arrival events and assign to waitline per policy (last priority, done last (forth) here
