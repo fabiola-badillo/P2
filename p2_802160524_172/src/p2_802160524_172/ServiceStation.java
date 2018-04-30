@@ -3,24 +3,30 @@ package p2_802160524_172;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
+/**
+ * This class implements the algorithms for each
+ * serving sheme and policy.
+ * 
+ * @author Fabiola Badillo 802-16-0524 Section 090
+ *
+ */
+
 public class ServiceStation {
 
-	private policy currentPolicy;
-	private int serversQty;
-
-	private PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort();
-	private PriorityQueue<Customer> arrivalPriorityQueue = new PriorityQueue<Customer>(11,arrivalPriorityQueueSorter);
-
-	private PriorityQueueCompletionSort servicePriorityQueueSorter = new PriorityQueueCompletionSort();
-	private PriorityQueue<Customer> servicePriorityQueue = new PriorityQueue<Customer>(11,servicePriorityQueueSorter);
-
-	private LinkedList<Customer>[] waitLines;
-	private boolean ServiceCompleted[];
-
-	private double avgM;
-	private int currentTime;
-	private double t2;
-	private int n;
+	// necessary instance variables
+	
+	private policy currentPolicy; // the serving scheme being executed
+	private int serversQty; // the number of service stations
+	private PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort(); // comparator used to determine the priority on the arrivalPriorityQueue
+	private PriorityQueue<Customer> arrivalPriorityQueue = new PriorityQueue<Customer>(11,arrivalPriorityQueueSorter); // stores the arrival events
+	private PriorityQueueCompletionSort servicePriorityQueueSorter = new PriorityQueueCompletionSort(); // comparator used to determine the priority on the servicePriorityQueue
+	private PriorityQueue<Customer> servicePriorityQueue = new PriorityQueue<Customer>(11,servicePriorityQueueSorter); // stores the service events
+	private LinkedList<Customer>[] waitLines; // list of waiting lines
+	private boolean ServiceCompleted[]; // array used as flag for finding service stations availability
+	private double avgM; // average number of customers overpassing per customer
+	private int currentTime; // keeps track of the actual time
+	private double t2; // average waiting time per customer
+	private int n; // number of customers being serviced
 
 	public ServiceStation(policy currentPolicy, int serversQty, PriorityQueue<Customer> arrivalPriorityQueue) {
 		super();
@@ -35,7 +41,7 @@ public class ServiceStation {
 		
 
 		//create waiting lines
-		for(int i=0;i<serversQty; i++) { // TODO check index, i changed to zero, it was 1
+		for(int i=0;i<serversQty; i++) { 
 			waitLines[i] = new LinkedList<Customer>();
 			ServiceCompleted[i] = false;
 		}
@@ -43,8 +49,8 @@ public class ServiceStation {
 
 	public void Serve() {
 
-		boolean finished = false;
-		Customer currentCompletedCustomer;
+		boolean finished = false; 
+		Customer currentCompletedCustomer; 
 		int shortestLine;
 		int shortestLineLength;
 		int nextServiceCompletionTime = -1;
@@ -86,17 +92,15 @@ public class ServiceStation {
 							if (waitLines[i].get(j).getArrivalTime() < currentCompletedCustomer.getArrivalTime()) {
 								m++; //number of customers who arrived before other customer who just finished
 							}
-//							else {
-//								break;
-//							}
 						}
 					}
 				}
+				
 				// keep track of number of events
 				completionEventId++;
 				globalEventId++;
 
-				//TODO collect running statistics and write to raw results files
+				// used for testing
 				System.out.println(globalEventId + ", " + completionEventId + ". Time = " + currentTime + " Completed cid = " + currentCompletedCustomer.getCid() + " at = " + 
 						currentCompletedCustomer.getArrivalTime() + " st = " + currentCompletedCustomer.getStartTime() + " ct = " +
 						currentCompletedCustomer.getCompletionTime());  
@@ -109,15 +113,16 @@ public class ServiceStation {
 				while (sizeDiff >= 2) {
 					int shortest = 0;
 					int longest = 0;
-					for (int i = 1; i < serversQty; i++) { // identifies shortest line
+					for (int i = 1; i < serversQty; i++) { 
 						if (waitLines[i].size() < waitLines[shortest].size()) {
-							shortest = i;
+							shortest = i; // identifies shortest line
 						}
 						if (waitLines[i].size() > waitLines[longest].size()) {
-							longest = i;
+							longest = i; // identifies longest line
 						}
 					}
-					sizeDiff = waitLines[longest].size() - waitLines[shortest].size();
+					sizeDiff = waitLines[longest].size() - waitLines[shortest].size(); 
+					// checks if the difference in line length is equal or greater than two, which is the case when a transfer makes sense
 					if (sizeDiff >= 2) {
 						waitLines[shortest].addLast(waitLines[longest].pollLast());
 					}
@@ -153,7 +158,7 @@ public class ServiceStation {
 			}
 			else {	
 				//get new waitline heads and add to servicePriorityQueue
-				for(int i = 0; i < serversQty; i++) { // TODO check index, i changed to zero, it was 1
+				for(int i = 0; i < serversQty; i++) { 
 					if (ServiceCompleted[i]) {
 						if (waitLines[i].size() > 0) {
 							tmpStartingCustomer = waitLines[i].peekFirst();
@@ -239,7 +244,7 @@ public class ServiceStation {
 					int fastestLine = 0;
 					int fastestLineWaitingTime = 0;
 					int currentLineWaitingTime = 0;
-					for (int i = 1; i < waitLines[0].size(); i++) {
+					for (int i = 1; i < waitLines[0].size(); i++) { // identify which line has less waiting time
 						fastestLineWaitingTime += waitLines[0].get(i).getServiceTime();
 					}
 					if (waitLines[0].size() > 0) {
@@ -259,6 +264,7 @@ public class ServiceStation {
 							fastestLine = i;
 						}
 					}
+					// add the next customer to the line with less waiting time
 					waitLines[fastestLine].add(arrivalPriorityQueue.poll());
 
 					//check if waitline was empty because if so, we'll need to start the service for it right away
@@ -274,7 +280,7 @@ public class ServiceStation {
 					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + waitLines[fastestLine].peekLast().getCid() + " at = " + 
 							waitLines[fastestLine].peekLast().getArrivalTime());  
 				}
-				//TODO: add ifs other arrival policies logic
+				
 			}	
 
 

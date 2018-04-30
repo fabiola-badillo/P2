@@ -1,5 +1,15 @@
 package p2_802160524_172;
 
+/**
+ * This class implements the algorithms for each
+ * serving scheme and policy.
+ * 
+ * Based on Job<E> class from lab activity.
+ * 
+ * @author Fabiola Badillo 802-16-0524 Section 090
+ *
+ */
+
 public class Customer {
 	private int cid;			// customer id (assigned in read order incrementing)
 	private int arrivalTime;   	// time it gets to service station
