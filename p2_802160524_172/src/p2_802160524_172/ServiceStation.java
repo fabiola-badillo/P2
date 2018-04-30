@@ -43,7 +43,11 @@ public class ServiceStation {
 		boolean arrivalPriorityQueueEmpty = false;
 		boolean servicePriorityQueueEmpty = false;
 		Customer tmpStartingCustomer;
-
+		int globalEventId = 0;
+		int arrivalEventId = 0;
+		int completionEventId = 0;
+		
+		
 		while (!finished) {
 
 			//check for completion events (highest priority events, done here first)
@@ -53,29 +57,34 @@ public class ServiceStation {
 				ServiceCompleted[currentCompletedCustomer.getServerid()] = true;
 				//remove from waitLine[currentCompletedCustomer.getServerid()]
 				waitLines[currentCompletedCustomer.getServerid()].pollFirst();		
+				completionEventId++;
+				globalEventId++;
 
 				//TODO collect running statistics and write to raw results files
-				System.out.println("Time = " + currentTime + " Completed cid = " + Integer.toString(currentCompletedCustomer.getCid()) + " at = " + 
-						Integer.toString(currentCompletedCustomer.getArrivalTime()) + " st = " + 
-						Integer.toString(currentCompletedCustomer.getStartTime()) + " ct = " + 
-						Integer.toString(currentCompletedCustomer.getCompletionTime()));  
+				System.out.println(globalEventId + ", " + completionEventId + ". Time = " + currentTime + " Completed cid = " + currentCompletedCustomer.getCid() + " at = " + 
+						currentCompletedCustomer.getArrivalTime() + " st = " + currentCompletedCustomer.getStartTime() + " ct = " +
+						currentCompletedCustomer.getCompletionTime());  
 			}
 
 			//check for possible transfers (if applicable per current policy) (second priority events, done here second)
 			if (currentPolicy == policy.MLMSBLL) {
 				//check waitLines[i] lengths and balance, need to do it in a loop cause we have variable number of waitlines
-				int shortest = 0;
-				int longestLine = serversQty-1;
-				for (int i = 1; i < serversQty; i++) { // identifies shortest line
-					if (waitLines[i].size() < waitLines[shortest].size()) {
-						shortest = i;
+				int sizeDiff = 2; // default to two to enter the while initially
+				while (sizeDiff >= 2) {
+					int shortest = 0;
+					int longest = 0;
+					for (int i = 1; i < serversQty; i++) { // identifies shortest line
+						if (waitLines[i].size() < waitLines[shortest].size()) {
+							shortest = i;
+						}
+						if (waitLines[i].size() > waitLines[longest].size()) {
+							longest = i;
+						}
 					}
-					if (waitLines[i].size() > waitLines[longestLine].size()) {
-						longestLine = i;
+					sizeDiff = waitLines[longest].size() - waitLines[shortest].size();
+					if (sizeDiff >= 2) {
+						waitLines[shortest].addLast(waitLines[longest].pollLast());
 					}
-				}
-				if (waitLines[longestLine].size() - waitLines[shortest].size() >= 2) {
-					waitLines[shortest].addLast(waitLines[longestLine].removeLast());
 				}
 			}
 
@@ -120,7 +129,9 @@ public class ServiceStation {
 						tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
 						servicePriorityQueue.add(tmpStartingCustomer);
 					}
-					System.out.println("Time = " + currentTime + " Arrived cid = " + Integer.toString(waitLines[shortestLine].peekLast().getCid()) + " at = " + 
+					arrivalEventId++;
+					globalEventId++;
+					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + Integer.toString(waitLines[shortestLine].peekLast().getCid()) + " at = " + 
 							Integer.toString(waitLines[shortestLine].peekLast().getArrivalTime()));  
 				}
 				else { // currentPolicy == policy.MLMSBWT
@@ -130,21 +141,36 @@ public class ServiceStation {
 					for (int i = 1; i < waitLines[0].size(); i++) {
 						fastestLineWaitingTime += waitLines[0].get(i).getServiceTime();
 					}
-					fastestLineWaitingTime += (waitLines[fastestLine].getFirst().getCompletionTime() - currentTime);
+					if (waitLines[0].size() > 0) {
+						fastestLineWaitingTime += (waitLines[fastestLine].getFirst().getCompletionTime() - currentTime);
+					}
 
 					for (int i = 1; i < waitLines.length; i++) {
 						for (int j = 1; j < waitLines[i].size(); j++) {
 							currentLineWaitingTime += waitLines[i].get(j).getServiceTime();
 						}
-						currentLineWaitingTime += (waitLines[i].getFirst().getCompletionTime() - currentTime);
+						if (waitLines[i].size() > 0) {
+							currentLineWaitingTime += (waitLines[i].getFirst().getCompletionTime() - currentTime);
+						}
+
 						if (fastestLineWaitingTime > currentLineWaitingTime) {
 							fastestLineWaitingTime = currentLineWaitingTime;
 							fastestLine = i;
 						}
 					}
 					waitLines[fastestLine].add(arrivalPriorityQueue.poll());
-
-					
+					//check if waitline was empty because if so, we'll need to start the service for it right away
+					if(waitLines[fastestLine].size() == 1) {
+						tmpStartingCustomer = waitLines[fastestLine].peekFirst();
+						tmpStartingCustomer.setServerid(fastestLine);
+						tmpStartingCustomer.setStartTime(currentTime);
+						tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+						servicePriorityQueue.add(tmpStartingCustomer);
+					}
+					arrivalEventId++;
+					globalEventId++;
+					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + Integer.toString(waitLines[fastestLine].peekLast().getCid()) + " at = " + 
+							Integer.toString(waitLines[fastestLine].peekLast().getArrivalTime()));  
 				}
 				//TODO: add ifs other arrival policies logic
 			}	

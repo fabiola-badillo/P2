@@ -9,7 +9,7 @@ public class ServiceStationTester {
 		//instantiate service station per policies and number of servers
 		//then call their serve method
 		
-		policy currentPolicy = policy.MLMS;
+		policy currentPolicy = policy.MLMSBLL;
 		dataReader dr = new dataReader();
 		Queue<Customer> inputQueue = dr.readData();
 		PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort();
@@ -18,7 +18,7 @@ public class ServiceStationTester {
 			arrivalPriorityQueue.add(inputQueue.dequeue());
 		}
 		
-		ServiceStation ss = new ServiceStation(currentPolicy, 5, arrivalPriorityQueue);
+		ServiceStation ss = new ServiceStation(currentPolicy, 1, arrivalPriorityQueue);
 		ss.Serve();
 
 	}
