@@ -9,7 +9,7 @@ public class ServiceStationTester {
 		//instantiate service station per policies and number of servers
 		//then call their serve method
 		
-		policy currentPolicy = policy.MLMSBLL;
+		policy currentPolicy = policy.SLMS;
 		dataReader dr = new dataReader();
 		Queue<Customer> inputQueue = dr.readData();
 		PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort();

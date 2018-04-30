@@ -46,8 +46,10 @@ public class ServiceStation {
 		int globalEventId = 0;
 		int arrivalEventId = 0;
 		int completionEventId = 0;
-		
-		
+		int m = 0;
+		double avgM = 0;
+
+
 		while (!finished) {
 
 			//check for completion events (highest priority events, done here first)
@@ -56,7 +58,23 @@ public class ServiceStation {
 				//flag serviceCompleted on this line so we can start a new one
 				ServiceCompleted[currentCompletedCustomer.getServerid()] = true;
 				//remove from waitLine[currentCompletedCustomer.getServerid()]
-				waitLines[currentCompletedCustomer.getServerid()].pollFirst();		
+				waitLines[currentCompletedCustomer.getServerid()].pollFirst();	
+
+				// logic for keeping track of m
+				// check arrival time of customer who just finished
+				int currentCompletedCustomerArrivalTime = currentCompletedCustomer.getArrivalTime();
+				// compare that arrival time with the arrival time of every line's head customer
+				for (int i = 0; i < waitLines.length; i++) {
+					for (int j = 0; j < waitLines[i].size(); j++) {
+						if (waitLines[i].get(j).getArrivalTime() < currentCompletedCustomerArrivalTime) {
+							m++; //number of customers who finished being serviced before other customer who arrived first
+						}
+						else {
+							break;
+						}
+					}
+				}
+				// keep track of number of events
 				completionEventId++;
 				globalEventId++;
 
@@ -92,12 +110,24 @@ public class ServiceStation {
 			//get new waitline heads and add to servicePriorityQueue
 			for(int i = 0; i < serversQty; i++) { // TODO check index, i changed to zero, it was 1
 				if (ServiceCompleted[i]) {
-					if (waitLines[i].size() > 0) {
-						tmpStartingCustomer = waitLines[i].peekFirst();
-						tmpStartingCustomer.setServerid(i);
-						tmpStartingCustomer.setStartTime(currentTime);
-						tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
-						servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time	
+					if (this.currentPolicy == policy.SLMS) {
+						if (waitLines[0].size() > 1) {
+							tmpStartingCustomer = waitLines[0].get(1);
+							waitLines[0].remove(1);
+							tmpStartingCustomer.setServerid(0);
+							tmpStartingCustomer.setStartTime(currentTime);
+							tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+							servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time
+						}
+					}
+					else {
+						if (waitLines[i].size() > 0) {
+							tmpStartingCustomer = waitLines[i].peekFirst();
+							tmpStartingCustomer.setServerid(i);
+							tmpStartingCustomer.setStartTime(currentTime);
+							tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+							servicePriorityQueue.add(tmpStartingCustomer);	//priority queue automatically places the new customer being serviced in its correct position based on scheduled completion time	
+						}
 					}
 					ServiceCompleted[i] = false;
 				}
@@ -108,7 +138,44 @@ public class ServiceStation {
 			//				System.out.println(arrivalPriorityQueue.size());
 			while (!arrivalPriorityQueue.isEmpty() && arrivalPriorityQueue.peek().getArrivalTime() == currentTime) {
 				if (currentPolicy == policy.SLMS) {
-					waitLines[0].add(arrivalPriorityQueue.poll());
+					boolean emptyServerFlag = false;
+					int assignedServer = -1; 
+					if (waitLines[0].size() == 0) {
+						tmpStartingCustomer = arrivalPriorityQueue.poll();
+						tmpStartingCustomer.setServerid(0);
+						tmpStartingCustomer.setStartTime(currentTime);
+						tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+						waitLines[0].add(tmpStartingCustomer);
+						servicePriorityQueue.add(tmpStartingCustomer);
+						assignedServer = 0;
+					}
+					else if (waitLines[0].size() == 1) {
+						for (int i = 1; i < waitLines.length; i++) {
+							if (waitLines[i].size() == 0) {
+								tmpStartingCustomer = arrivalPriorityQueue.poll();
+								tmpStartingCustomer.setServerid(i);
+								tmpStartingCustomer.setStartTime(currentTime);
+								tmpStartingCustomer.setCompletionTime(currentTime + tmpStartingCustomer.getServiceTime());
+								waitLines[i].add(tmpStartingCustomer);
+								servicePriorityQueue.add(tmpStartingCustomer);
+								emptyServerFlag = true;
+								assignedServer = i;
+							}
+						}
+						if (!emptyServerFlag) {
+							waitLines[0].add(arrivalPriorityQueue.poll());
+							assignedServer = 0;
+						}
+					}
+					else {
+						waitLines[0].add(arrivalPriorityQueue.poll());
+						assignedServer = 0;
+					}
+					arrivalEventId++;
+					globalEventId++;
+					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + waitLines[assignedServer].peekLast().getCid() + " at = " + 
+							waitLines[assignedServer].peekLast().getArrivalTime()); 
+
 				}
 				else if (currentPolicy == policy.MLMS || currentPolicy == policy.MLMSBLL) {
 					shortestLine = 0;	//initially pick first line as shortest (if not the checks below will substitute it)
@@ -159,6 +226,7 @@ public class ServiceStation {
 						}
 					}
 					waitLines[fastestLine].add(arrivalPriorityQueue.poll());
+
 					//check if waitline was empty because if so, we'll need to start the service for it right away
 					if(waitLines[fastestLine].size() == 1) {
 						tmpStartingCustomer = waitLines[fastestLine].peekFirst();
@@ -210,6 +278,8 @@ public class ServiceStation {
 				}
 				else {	//neither any service events pending.  we are done!
 					finished = true;
+					avgM = m / completionEventId;
+					System.out.println(avgM);
 				}
 			}		
 		}
