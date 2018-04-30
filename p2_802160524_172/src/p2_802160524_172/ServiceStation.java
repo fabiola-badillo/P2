@@ -32,6 +32,7 @@ public class ServiceStation {
 		this.avgM = 0;
 		currentTime = 0;
 		t2 = 0;
+		
 
 		//create waiting lines
 		for(int i=0;i<serversQty; i++) { // TODO check index, i changed to zero, it was 1
@@ -69,20 +70,25 @@ public class ServiceStation {
 				waitLines[currentCompletedCustomer.getServerid()].pollFirst();	
 				
 				// add up every customer's waiting time
-				currentCompletedCustomer.setCompletionTime(currentTime); // TODO check of this is right
-				totalWaitingTime += (currentCompletedCustomer.getArrivalTime() - currentCompletedCustomer.getArrivalTime());
+				totalWaitingTime += (currentCompletedCustomer.getStartTime() - currentCompletedCustomer.getArrivalTime());
 				
 				// logic for keeping track of m
-				// check arrival time of customer who just finished
-				int currentCompletedCustomerArrivalTime = currentCompletedCustomer.getArrivalTime();
-				// compare that arrival time with the arrival time of every line's head customer
+				// compare that arrival and start time with the arrival and starttime of every line's head customer
 				for (int i = 0; i < waitLines.length; i++) {
-					for (int j = 0; j < waitLines[i].size(); j++) {
-						if (waitLines[i].get(j).getArrivalTime() < currentCompletedCustomerArrivalTime) {
-							m++; //number of customers who finished being serviced before other customer who arrived first
+					if (waitLines[i].size() > 0) {	//skip empty lines
+						//we need to check the arrival and start times of the customers currently being serviced to see if they arrived before but this one started before those
+						if (currentCompletedCustomer.getArrivalTime() > waitLines[i].get(0).getArrivalTime()) { //it arrived after this one that hasn't finished, need to check start time
+							if (waitLines[i].get(0).getStartTime() < 0 || (waitLines[i].get(0).getStartTime() > currentCompletedCustomer.getStartTime())){
+								m++; //number of customers who started being serviced before other customer who arrived first
+							}
 						}
-						else {
-							break;
+						for (int j = 1; j < waitLines[i].size(); j++) {
+							if (waitLines[i].get(j).getArrivalTime() < currentCompletedCustomer.getArrivalTime()) {
+								m++; //number of customers who arrived before other customer who just finished
+							}
+//							else {
+//								break;
+//							}
 						}
 					}
 				}
@@ -265,8 +271,8 @@ public class ServiceStation {
 					}
 					arrivalEventId++;
 					globalEventId++;
-					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + Integer.toString(waitLines[fastestLine].peekLast().getCid()) + " at = " + 
-							Integer.toString(waitLines[fastestLine].peekLast().getArrivalTime()));  
+					System.out.println(globalEventId + ", " + arrivalEventId + ". Time = " + currentTime + " Arrived cid = " + waitLines[fastestLine].peekLast().getCid() + " at = " + 
+							waitLines[fastestLine].peekLast().getArrivalTime());  
 				}
 				//TODO: add ifs other arrival policies logic
 			}	
@@ -308,14 +314,14 @@ public class ServiceStation {
 					finished = true;
 					avgM = m / completionEventId;
 					t2 = totalWaitingTime / completionEventId;
-					n=completionEventId;
-					System.out.println(avgM);
-					System.out.println(t2);
-					System.out.println(n);
+					n = completionEventId;
+//					System.out.println("Avg m = " + avgM);
+//					System.out.println("T2 = " + t2);
+//					System.out.println(n);
 				}
 			}		
 		}
-		//TODO: we are done processing events so do final statistics
+		
 
 	}
 
@@ -334,4 +340,6 @@ public class ServiceStation {
 	public int getN(){
 		return n;
 	}
+	
+	
 }
