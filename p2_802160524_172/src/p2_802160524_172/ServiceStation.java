@@ -20,6 +20,7 @@ public class ServiceStation {
 	private double avgM;
 	private int currentTime;
 	private double t2;
+	private int n;
 
 	public ServiceStation(policy currentPolicy, int serversQty, PriorityQueue<Customer> arrivalPriorityQueue) {
 		super();
@@ -69,7 +70,7 @@ public class ServiceStation {
 				
 				// add up every customer's waiting time
 				currentCompletedCustomer.setCompletionTime(currentTime); // TODO check of this is right
-				totalWaitingTime += (currentCompletedCustomer.getCompletionTime() - currentCompletedCustomer.getArrivalTime());
+				totalWaitingTime += (currentCompletedCustomer.getArrivalTime() - currentCompletedCustomer.getArrivalTime());
 				
 				// logic for keeping track of m
 				// check arrival time of customer who just finished
@@ -307,8 +308,10 @@ public class ServiceStation {
 					finished = true;
 					avgM = m / completionEventId;
 					t2 = totalWaitingTime / completionEventId;
+					n=completionEventId;
 					System.out.println(avgM);
 					System.out.println(t2);
+					System.out.println(n);
 				}
 			}		
 		}
@@ -328,5 +331,7 @@ public class ServiceStation {
 		return t2;
 	}
 	
-	
+	public int getN(){
+		return n;
+	}
 }
