@@ -18,7 +18,7 @@ public class ServiceStationTester {
 			arrivalPriorityQueue.add(inputQueue.dequeue());
 		}
 		
-		ServiceStation ss = new ServiceStation(currentPolicy, 1, arrivalPriorityQueue);
+		ServiceStation ss = new ServiceStation(currentPolicy, 3, arrivalPriorityQueue);
 		ss.Serve();
 
 	}

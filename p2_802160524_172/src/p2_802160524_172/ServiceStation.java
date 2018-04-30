@@ -17,6 +17,10 @@ public class ServiceStation {
 	private LinkedList<Customer>[] waitLines;
 	private boolean ServiceCompleted[];
 
+	private double avgM;
+	private int currentTime;
+	private double t2;
+
 	public ServiceStation(policy currentPolicy, int serversQty, PriorityQueue<Customer> arrivalPriorityQueue) {
 		super();
 		this.currentPolicy = currentPolicy;
@@ -24,6 +28,9 @@ public class ServiceStation {
 		this.arrivalPriorityQueue = arrivalPriorityQueue;
 		this.waitLines = new LinkedList[serversQty];
 		this.ServiceCompleted = new boolean[serversQty];
+		this.avgM = 0;
+		currentTime = 0;
+		t2 = 0;
 
 		//create waiting lines
 		for(int i=0;i<serversQty; i++) { // TODO check index, i changed to zero, it was 1
@@ -33,7 +40,7 @@ public class ServiceStation {
 	}
 
 	public void Serve() {
-		int currentTime = 0;
+
 		boolean finished = false;
 		Customer currentCompletedCustomer;
 		int shortestLine;
@@ -46,8 +53,8 @@ public class ServiceStation {
 		int globalEventId = 0;
 		int arrivalEventId = 0;
 		int completionEventId = 0;
-		int m = 0;
-		double avgM = 0;
+		double m = 0;
+		double totalWaitingTime = 0;
 
 
 		while (!finished) {
@@ -59,7 +66,11 @@ public class ServiceStation {
 				ServiceCompleted[currentCompletedCustomer.getServerid()] = true;
 				//remove from waitLine[currentCompletedCustomer.getServerid()]
 				waitLines[currentCompletedCustomer.getServerid()].pollFirst();	
-
+				
+				// add up every customer's waiting time
+				currentCompletedCustomer.setCompletionTime(currentTime); // TODO check of this is right
+				totalWaitingTime += (currentCompletedCustomer.getCompletionTime() - currentCompletedCustomer.getArrivalTime());
+				
 				// logic for keeping track of m
 				// check arrival time of customer who just finished
 				int currentCompletedCustomerArrivalTime = currentCompletedCustomer.getArrivalTime();
@@ -180,7 +191,7 @@ public class ServiceStation {
 				else if (currentPolicy == policy.MLMS || currentPolicy == policy.MLMSBLL) {
 					shortestLine = 0;	//initially pick first line as shortest (if not the checks below will substitute it)
 					shortestLineLength = waitLines[0].size(); // changed from waitLines[1].size(); to waitLines[0].size();
-					for(int i=2;i<serversQty; i++) {
+					for(int i = 1; i < serversQty; i++) {
 						if (waitLines[i].size() < shortestLineLength) {
 							shortestLine = i;
 							shortestLineLength = waitLines[i].size();
@@ -279,7 +290,9 @@ public class ServiceStation {
 				else {	//neither any service events pending.  we are done!
 					finished = true;
 					avgM = m / completionEventId;
+					t2 = totalWaitingTime / completionEventId;
 					System.out.println(avgM);
+					System.out.println(t2);
 				}
 			}		
 		}
@@ -287,4 +300,17 @@ public class ServiceStation {
 
 	}
 
+	public int getCurrentTime() {
+		return currentTime;
+	}
+	
+	public double getM() {
+		return avgM;
+	}
+	
+	public double getT2() {
+		return t2;
+	}
+	
+	
 }
