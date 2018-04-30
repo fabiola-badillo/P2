@@ -2,40 +2,94 @@ package p2_802160524_172;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 
 import p2_802160524_172.SLLQueue;
 
 public class dataReader {
 	private String parentDirectory;
-	SLLQueue<Customer> inputQueue;
+	ArrayList<PriorityQueue<Customer>> inputQueue;
+	ArrayList<Integer> IncorrectFormatedFiles, correctlyformatedfiles;
+	public int i;
 
 	public dataReader() throws FileNotFoundException {
 		parentDirectory = "inputFiles"; 
+		IncorrectFormatedFiles = new ArrayList<>();
+		correctlyformatedfiles = new ArrayList<>();
+		i=0;
 	}
 
-	public SLLQueue<Customer> readData() throws FileNotFoundException{ // TODO add file "dataFiles.txt"
-	    inputQueue= new SLLQueue<Customer>();
+	public ArrayList<PriorityQueue<Customer>> readData() throws FileNotFoundException{ // TODO add file "dataFiles.txt"
+	  try {  inputQueue= new ArrayList<PriorityQueue<Customer>>();
 		int id = 0;
+		
 		String parenFiles = "dataFiles.txt";
 		Scanner input = new Scanner(new File(parentDirectory, parenFiles));
-		while(input.hasNextLine()) {//TODO:  read filenames from file "datafiles.txt" and then repeat logic inside the for loop below for each file
+		while(input.hasNextLine()) {
 			String datap=input.nextLine();
-		for (int i=1; i<3; i++) { // first 3 only for testing only, change per comment above
+			i++;
 			String fileName = datap;
-			Scanner inputFile = new Scanner(new File(parentDirectory, fileName)); 
+			Scanner inputFile = new Scanner(new File(parentDirectory, fileName));
+		    PriorityQueueCompletionSort servicePriorityQueueSorter = new PriorityQueueCompletionSort();
+			PriorityQueue<Customer> tool = new PriorityQueue<Customer>(11, servicePriorityQueueSorter);
+			
+			
 
 			while (inputFile.hasNext()) {
 				String data = inputFile.nextLine();
 				String[] dataArr = data.split(" ");
-				inputQueue.enqueue(new Customer(id, Integer.parseInt(dataArr[0]), Integer.parseInt(dataArr[1]), i));	//TODO: make first param globally unique, last param is file index
+				for(int j=0; j<dataArr.length;j++) {
+				if(!Character.isDigit(data.charAt(j)) || data.length()==0 || data.length()>2){
+					 
+					generateOutput(i, "Input file does not meet the expected format or it is empty.");
+			}
+				else {
+					
+				tool.add(new Customer(id,(int) Integer.parseInt(dataArr[0]), (int)Integer.parseInt(dataArr[1]), i));	//TODO: make first param globally unique, last param is file index
 				id++;
 				}
+				}
+			inputQueue.add(tool);
+		
+			
+		}
 			inputFile.close();
-			}
 		}
 		input.close();
 		return inputQueue; 
 		
 	}
+	  catch(FileNotFoundException nelli) {
+		 
+	generateOutput(i, "Input file not found.");
+	
+	  
+	  }
+	 return inputQueue;
+	  }
+			
+	  
+	
+	
+	  
+	
+	
+	public void generateOutput(int i, String Error) throws FileNotFoundException {  
+		String directory = "outputFiles"; // folder that contains the files
+	
+	String name ="data_"+i+"_OUT.txt";
+	
+	PrintWriter tool = new PrintWriter(new File(directory,name));
+	
+		tool.println(Error);
+	
+	tool.close();
+		
+	}
+	
+	
+	
 }

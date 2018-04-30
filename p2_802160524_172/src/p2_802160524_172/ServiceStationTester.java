@@ -1,3 +1,4 @@
+
 package p2_802160524_172;
 
 import java.io.FileNotFoundException;
@@ -9,7 +10,7 @@ public class ServiceStationTester {
 		//instantiate service station per policies and number of servers
 		//then call their serve method
 		
-		policy currentPolicy = policy.SLMS;
+		policy currentPolicy = policy.MLMSBWT;
 		dataReader dr = new dataReader();
 		Queue<Customer> inputQueue = dr.readData();
 		PriorityQueueArrivalSort arrivalPriorityQueueSorter = new PriorityQueueArrivalSort();
@@ -18,7 +19,7 @@ public class ServiceStationTester {
 			arrivalPriorityQueue.add(inputQueue.dequeue());
 		}
 		
-		ServiceStation ss = new ServiceStation(currentPolicy, 1, arrivalPriorityQueue);
+		ServiceStation ss = new ServiceStation(currentPolicy, 3, arrivalPriorityQueue);
 		ss.Serve();
 
 	}
